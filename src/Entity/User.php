@@ -7,10 +7,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
  * @ApiResource()
+ * @UniqueEntity("email", message="A registered user already has this email.")
  */
 class User implements UserInterface
 {
@@ -18,11 +22,15 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
+     * @Assert\NotBlank(message="User email is mandatory.")
+     * @Assert\Email(message="User email must be valid.")
      */
     private $email;
 
@@ -34,16 +42,34 @@ class User implements UserInterface
     /**
      * @var string The hashed password
      * @ORM\Column(type="string")
+     * @Assert\NotBlank(message="User password is mandatory.")
+     * @Assert\Length(min=8, minMessage="User password must be at least 8 characters long.")
      */
     private $password;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
+     * @Assert\NotBlank(message="User first name is mandatory.")
+     * @Assert\Length(
+     *     min=3,
+     *     minMessage="User first name must be at least 3 character long.",
+     *     max=255,
+     *     maxMessage="User first name must be at most 255 characters long."
+     * )
      */
     private $firstName;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
+     * @Assert\NotBlank(message="User last name is mandatory.")
+     * @Assert\Length(
+     *     min=3,
+     *     minMessage="User last name must be at least 3 character long.",
+     *     max=255,
+     *     maxMessage="User last name must be at most 255 characters long."
+     * )
      */
     private $lastName;
 

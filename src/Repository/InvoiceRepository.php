@@ -19,6 +19,26 @@ class InvoiceRepository extends ServiceEntityRepository
         parent::__construct($registry, Invoice::class);
     }
 
+    /**
+     * Increment the amount of an invoice.
+     *
+     * Used by the InvoiceIncrementationController
+     *
+     * @param Invoice $invoice
+     * @return mixed
+     */
+    public function incrementAmount(Invoice $invoice)
+    {
+        return $this
+            ->createQueryBuilder('i')
+            ->update() // Used to update the database
+            ->set('i.amount', 'i.amount + 1')
+            ->where('i.id = :id')
+            ->setParameter('id', $invoice->getId())
+            ->getQuery()
+            ->execute();
+    }
+
     // /**
     //  * @return Invoice[] Returns an array of Invoice objects
     //  */

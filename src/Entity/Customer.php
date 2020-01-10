@@ -3,13 +3,25 @@
 namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\CustomerRepository")
- * @ApiResource()
+ * @ApiResource(
+ *     collectionOperations={"GET"={"path"="/customers"}, "POST"},
+ *     itemOperations={"GET"={"path"="/customers/{id}"}, "DELETE", "PUT", "PATCH"},
+ *     subresourceOperations={
+ *          "invoices_get_subresource"={"path"="/customers/{id}/invoices"}
+ *     },
+ *     normalizationContext={
+ *          "groups"={"customers_read"}
+ *     }
+ * )
  */
 class Customer
 {
@@ -17,42 +29,96 @@ class Customer
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"customers_read", "invoices_read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"customers_read", "invoices_read"})
+     * @Assert\NotBlank(message="Customer first name is mandatory.")
+     * @Assert\Length(
+     *     min=3,
+     *     minMessage="Customer first name must be at least 3 character long.",
+     *     max=255,
+     *     maxMessage="Customer first name must be at most 255 characters long."
+     * )
      */
     private $firstName;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"customers_read", "invoices_read"})
+     * @Assert\NotBlank(message="Customer last name is mandatory.")
+     * @Assert\Length(
+     *     min=3,
+     *     minMessage="Customer last name must be at least 3 character long.",
+     *     max=255,
+     *     maxMessage="Customer last name must be at most 255 characters long."
+     * )
      */
     private $lastName;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"customers_read", "invoices_read"})
+     * @Assert\NotBlank(message="Customer email is mandatory.")
+     * @Assert\Email(message="Customer email is incorrect.")
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
+     * @Groups({"customers_read", "invoices_read"})
      */
     private $company;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Invoice", mappedBy="customer")
+     * @Groups({"customers_read"})
+     * @ApiSubresource()
      */
     private $invoices;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="customers")
+     * @Groups({"customers_read"})
+     * @Assert\NotBlank(message="Customer user is mandatory.")
      */
     private $user;
 
     public function __construct()
     {
         $this->invoices = new ArrayCollection();
+    }
+
+    /**
+     * Get the sum of Customer invoices
+     *
+     * @Groups({"customers_read"})
+     * @return float
+     */
+    public function getTotalAmount(): float
+    {
+        return array_reduce($this->invoices->toArray(), function ($total, $invoice) {
+            return $total + $invoice->getAmount();
+        }, 0);
+    }
+
+    /**
+     * Get the sum of Customer unpaid invoices
+     *
+     * @Groups({"customers_read"})
+     * @return float
+     */
+    public function getUnpaidAmount(): float
+    {
+        return array_reduce($this->invoices->toArray(), function ($total, $invoice) {
+            if ($invoice->getStatus() === "SENT") {
+                return $total + $invoice->getAmount();
+            }
+            return $total;
+        }, 0);
     }
 
     public function getId(): ?int
