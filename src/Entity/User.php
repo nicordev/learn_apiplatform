@@ -13,7 +13,11 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @ApiResource()
+ * @ApiResource(
+ *     normalizationContext={
+ *          "groups"={"user_read"}
+ *     }
+ * )
  * @UniqueEntity("email", message="A registered user already has this email.")
  */
 class User implements UserInterface
@@ -22,13 +26,13 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource", "user_read"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=180, unique=true)
-     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource", "user_read"})
      * @Assert\NotBlank(message="User email is mandatory.")
      * @Assert\Email(message="User email must be valid.")
      */
@@ -49,7 +53,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource", "user_read"})
      * @Assert\NotBlank(message="User first name is mandatory.")
      * @Assert\Length(
      *     min=3,
@@ -62,7 +66,7 @@ class User implements UserInterface
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"customers_read", "invoices_read", "invoices_subresource"})
+     * @Groups({"customers_read", "invoices_read", "invoices_subresource", "user_read"})
      * @Assert\NotBlank(message="User last name is mandatory.")
      * @Assert\Length(
      *     min=3,

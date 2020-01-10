@@ -29,7 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
  *          }
  *     },
  *     normalizationContext={
- *          "groups"="invoices_read"
+ *          "groups"={"invoices_read"}
  *     },
  *     denormalizationContext={
  *          "disable_type_enforcement"=true
